@@ -1,3 +1,12 @@
+#!/usr/bin/env python3
+ 
+##########################################################
+# encoding: utf                                          #
+# Copyright (c) Jesper Vang <jesper_vang@me.com>         #
+# MIT Licence. See http://opensource.org/licenses/MIT    #
+# Created on 11 Sep 2020                                 #
+# Version:	0.0.1                                        #
+##########################################################
 
 import pandas as pd
 import streamlit as st
@@ -29,7 +38,7 @@ def display_sidebar_settings():
     st.sidebar.markdown("---")
     st.sidebar.markdown("ℹ️ ** Details **")
     desc_check = st.sidebar.checkbox("📃 Dataset Description")
-    desc_markdown = read_markdown_file("Shared_Intro_ML/src/desc_markdown.md")        
+    desc_markdown = read_markdown_file("src/desc_markdown.md")        
 
     if desc_check:
         st.sidebar.markdown(desc_markdown, unsafe_allow_html=True)
@@ -40,7 +49,7 @@ def display_sidebar_settings():
 @st.cache
 def load_data():
     return pd.read_csv(
-        "Shared_Intro_ML/src/data/HCV-Egy-Data.csv"
+        "src/data/HCV-Egy-Data.csv"
     ).reset_index(drop=True)
 
 @st.cache
@@ -51,7 +60,7 @@ def display_config():
     pass
 
 def display_about():
-    intro_markdown = read_markdown_file("Shared_Intro_ML/src/intro.md")
+    intro_markdown = read_markdown_file("src/intro.md")
     st.markdown(intro_markdown, unsafe_allow_html=True)
 
 def dispaly_data():
@@ -108,7 +117,7 @@ def img_to_bytes(img_path):
     return base64.b64encode(img_bytes).decode()
 
 header_html = "<img src='data:image/png;base64,{}' class='img-fluid'>".format(
-    img_to_bytes("Shared_Intro_ML/src/image/header.png")
+    img_to_bytes("src/image/header.png")
 )
 st.markdown(
     header_html, unsafe_allow_html=True,
