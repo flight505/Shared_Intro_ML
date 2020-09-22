@@ -6,10 +6,10 @@ class PCA():
     """
         At this stage we initialize the variables needed in the various methods below.
     """
-    raw_dataset, pca_ready_dataset = [], []
+    raw_dataset, adj_dataset, pca_ready_dataset = [], [], []
     targets = []
     # this array contains the index of the columns that are classes and need 1-of-K encoding
-    cat_cols_idx = [1,3,4,5,6,7,8,9]
+    cat_cols_idx = []#[1,3,4,5,6,7,8,9]
     lookup_dict_mean, lookup_dict_std = {}, {} # dict used for standardization
 
 
@@ -21,7 +21,7 @@ class PCA():
         """
         self.read_data(filename)
         self.prep_dataset()
-        self.sub_mean()
+        self.standardize()
         self.apply_PCA()
 
     def read_data(self, filename):
@@ -53,17 +53,21 @@ class PCA():
             if col in self.cat_cols_idx:
                 old_col = [row[col] for row in self.raw_dataset]
                 classes = int(max(old_col))
-                new_col = np.zeros((len(old_col), classes))
+                new_col = [[0] * classes for i in range(len(old_col))]
                 for i, value in enumerate(old_col):
                     new_col[i][int(value)-1] = 1
 
             else:
-                old_col = [row[col] for row in self.raw_dataset]
-                self.lookup_dict_mean[col] = sum(old_col)/len(old_col)
-                self.lookup_dict_std[col] = np.std(old_col)
+                new_col = [row[col] for row in self.raw_dataset]
+                self.lookup_dict_mean[col] = sum(new_col)/len(new_col)
+                self.lookup_dict_std[col] = np.std(new_col)
 
+            self.adj_dataset.append(new_col)
+        
+        self.adj_dataset = list(map(list, zip(*self.adj_dataset)))
+        #self.adj_dataset = self.raw_dataset
 
-    def sub_mean(self):
+    def standardize(self):
         """
             We iterate through the columns once more in order to create an array that is ready for svd.
             Again, we need to perform to distinct operations depending on weather the column analyzed
@@ -74,20 +78,20 @@ class PCA():
             Finally we transpose the array because the way we have have done it, created a column vector. We
             want a row vector instead.
         """
-        for col in range(len(self.raw_dataset[0])):
+        for col in range(len(self.adj_dataset[0])):
             if col not in self.cat_cols_idx:
-                column = [row[col] for row in self.raw_dataset]
+                column = [row[col] for row in self.adj_dataset]
                 new_col = []
                 for idx in range(len(column)):
                     new_col.append((column[idx] - self.lookup_dict_mean[col]) / self.lookup_dict_std[col])
                 self.pca_ready_dataset.append(new_col)
             else:
-                column = [row[col] for row in self.raw_dataset]
+                column = [row[col] for row in self.adj_dataset]
                 self.pca_ready_dataset.append(column)
 
         self.pca_ready_dataset = list(map(list, zip(*self.pca_ready_dataset)))
 
-        
+
 
     def apply_PCA(self):
         """
