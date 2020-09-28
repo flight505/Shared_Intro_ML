@@ -56,12 +56,14 @@ class PCA():
                 new_col = [[0] * classes for i in range(len(old_col))]
                 for i, value in enumerate(old_col):
                     new_col[i][int(value)-1] = 1
+                
 
             else:
                 new_col = [row[col] for row in self.raw_dataset]
                 self.lookup_dict_mean[col] = sum(new_col)/len(new_col)
                 self.lookup_dict_std[col] = np.std(new_col)
 
+            new_col = np.array(new_col).astype(float)
             self.adj_dataset.append(new_col)
         
         self.adj_dataset = list(map(list, zip(*self.adj_dataset)))
@@ -97,7 +99,8 @@ class PCA():
         """
             Shamelessly copied from ex2_1_3.py
         """
-        self.pca_ready_dataset = np.array(self.pca_ready_dataset)
+        self.pca_ready_dataset = np.array(self.pca_ready_dataset).astype(float)
+        print(self.pca_ready_dataset[0])
         U,S,Vh = svd(self.pca_ready_dataset, full_matrices=True)
 
         rho = (S*S) / (S*S).sum() 
