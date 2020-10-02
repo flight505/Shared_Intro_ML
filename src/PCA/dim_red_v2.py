@@ -27,19 +27,19 @@ for column in range(x.shape[1]):
         for one_hot_enc_col in range(onehot_encoded.shape[1]):
             new_x.append(onehot_encoded[:,one_hot_enc_col])
         
-x = np.array(new_x).T
+new_x = np.array(new_x).T
 
 y = dataset.loc[:,[targets_col]].values
-x = StandardScaler().fit_transform(x)
+new_x = StandardScaler().fit_transform(new_x)
 
 
-pca = PCA(n_components=x.shape[1])
-principalComponents = pca.fit_transform(x)
-print(principalComponents)
-print(pca.explained_variance_ratio_)
-print(sum(pca.explained_variance_ratio_))
+pca = PCA(n_components=new_x.shape[1])
+principalComponents = pca.fit_transform(new_x)
+#print(principalComponents)
+#print(pca.explained_variance_ratio_)
+#print(sum(pca.explained_variance_ratio_))
 
-U,S,Vh = svd(x, full_matrices=True)
+U,S,Vh = svd(new_x, full_matrices=True)
 
 rho = (S*S) / (S*S).sum() 
 
@@ -55,4 +55,31 @@ plt.xlabel('Principal component');
 plt.ylabel('Variance explained');
 plt.legend(['Individual','Cumulative','Threshold'])
 plt.grid()
+plt.show()
+
+
+x_df = pd.DataFrame(new_x)
+#x_df = x_df.drop([1,2,4,5,6,7,8,9,10,11,12,13,14,15,16,17], axis=1)
+
+
+
+
+f = plt.figure(figsize=(10, 10))
+plt.matshow(x_df.corr(), fignum=f.number)
+plt.xticks(range(x_df.shape[1]), x_df.columns, fontsize=10, rotation=90)
+plt.yticks(range(x_df.shape[1]), x_df.columns, fontsize=10)
+cb = plt.colorbar()
+cb.ax.tick_params(labelsize=10)
+plt.title('Correlation Matrix', fontsize=16)
+#plt.show()
+
+cols_to_drop = [1,3,4,5,6,7,8,9]
+cols_to_drop = [1,2,4,5,6,7,8,9,10,11,12,13,14,15,16,17]
+data_to_plot = []
+for col in range(x_df.values.shape[1]):
+    if col not in cols_to_drop:
+        data_to_plot.append(x_df.values[:,col])
+
+plt.clf()
+plt.boxplot(data_to_plot)
 plt.show()
