@@ -1,0 +1,30 @@
+﻿Attribute,Lable,Example,Discrete/Continuous,Nominal/Ordinal/Interval/Ratio
+Age,Age,56,Discrete,Ratio
+Gender,Gender,1,Discrete,Nominal
+BMI,Body mass Index,35,Discrete,Ratio
+Fever,Fever,2,Discrete,Nominal
+Nausea/Vomting,Nausea/Vomting ,1,Discrete,Nominal
+Headache ,Headache ,1,Discrete,Nominal
+Diarrhea,Diarrhea,1,Discrete,Nominal
+Fatigue & generalized bone ache ,Fatigue & generalized bone ache ,2,Discrete,Nominal
+Jaundice,Jaundice ,2,Discrete,Nominal
+Epigastric pain ,Epigastric pain ,2,Discrete,Nominal
+WBC ,White blood cell ,7425,Discrete,Ratio
+RBC ,red blood cells ,4248807,Discrete,Ratio
+HGB ,Hemoglobin ,14,Discrete,Ratio
+Plat ,Platelets ,112132,Discrete,Ratio
+AST 1 ,aspartate transaminase ratio ,99,Discrete,Ratio
+ALT 1 ,alanine transaminase ratio 1 week ,84,Discrete,Ratio
+ALT 4 ,alanine transaminase ratio 12 weeks ,52,Discrete,Ratio
+ALT 12,alanine transaminase ratio 4 weeks ,109,Discrete,Ratio
+ALT 24 ,alanine transaminase ratio 24 weeks ,81,Discrete,Ratio
+ALT 36 ,alanine transaminase ratio 36 weeks ,5,Discrete,Ratio
+ALT 48 ,alanine transaminase ratio 48 weeks ,5,Discrete,Ratio
+ALT after 24 ,w alanine transaminase ratio 24 weeks ,5,Discrete,Ratio
+RNA Base ,RNA Base ,655330,Discrete,Ratio
+RNA 4 ,RNA 4 ,634536,Discrete,Ratio
+RNA 12 ,RNA 12 ,288194,Discrete,Ratio
+RNA EOT,RNA end-of-treatment ,5,Discrete,Ratio
+RNA EF,RNA Elongation Factor ,5,Discrete,Ratio
+Baseline histological Grading ,Baseline histological Grading ,13,Discrete,Interval
+Baselinehistological staging ,Baselinehistological staging,2,Discrete,Interval
