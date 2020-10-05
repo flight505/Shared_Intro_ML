@@ -7,6 +7,7 @@ from numpy.linalg.linalg import svd
 from matplotlib import pyplot as plt
 from scipy.stats.kde import gaussian_kde
 from matplotlib.pyplot import figure
+import seaborn as sns
 
 dataset = pd.read_csv("src/data/HCV-Egy-Data.csv", delimiter=',')
 
@@ -21,9 +22,7 @@ new_features_col = ['Age', 'Male','Female','BMI',
 targets_col_reg = list(dataset.columns)[-2]
 targets_col_clas = list(dataset.columns)[-1]
 
-
 x = dataset.loc[:, features_col].values
-
 new_x = []
 cols = [1,3,4,5,6,7,8,9] # binary columns
 for column in range(x.shape[1]):
@@ -41,17 +40,6 @@ new_x = np.array(new_x).T
 x_df = pd.DataFrame(new_x)
 x_df.columns = new_features_col
 
-
-y_clas = dataset.loc[:,[targets_col_clas]].values
-y_reg = dataset.loc[:,[targets_col_reg]].values
-
-y_reg = y_reg/np.max(y_reg)
-y_reg = np.add(y_reg, y_clas)
-y_reg = y_reg-np.min(y_reg)
-y_reg = y_reg/np.max(y_reg)
-
-
-
 f = plt.figure(figsize=(15, 15))
 plt.matshow(x_df.corr(), fignum=f.number)
 plt.xticks(range(x_df.shape[1]), x_df.columns, fontsize=10, rotation=90)
@@ -63,56 +51,74 @@ plt.savefig('src/viz/plots/cross_correlation_matrix.png')
 
 
 
-cols_to_drop = [1,3,4,5,6,7,8,9]
+cat_cols = ['Gender','BMI','Fever','Nausea/Vomting','Headache ',
+                'Diarrhea ','Fatigue & generalized bone ache ','Jaundice ','Epigastric pain ']
+cont_cols = [x for x in features_col if x not in cat_cols]
+
 plt.clf()
 plt.cla()
 plt.style.use('ggplot')
 fig = figure()
-fig, ax = plt.subplots(5, 6)
-fig.suptitle('Features Distribution')
-for col in range(x.shape[1]):
-    if col not in cols_to_drop:
-        n, bins, _ = plt.hist(x[:,col], bins=20, rwidth=0.50)
-        data = []
-        for index in range(n.shape[0]):
-            data += [bins[index]]*int(n[index])
-        density = gaussian_kde(data)
-        xs = np.linspace(min(bins), max(bins), 50)
-        density.covariance_factor = lambda : .25
-        density._compute_covariance()
-        matrix_row, matrix_col = int(col/6), int(col%6)
-        ax[matrix_row, matrix_col].plot(xs, density(xs))
-    else:
-        matrix_row, matrix_col = int(col/6), int(col%6)
-        ax[matrix_row, matrix_col].hist(x[:,col])
-        
-for i, ax in enumerate(ax.flat):
-    if i == 29:
-        ax.cla()
+fig, ax = plt.subplots(3, 6)
+fig.suptitle('Age & Medical Measurements Distribution')
+for i, ax in zip(range(18), ax.flat):
     ax.label_outer()
     ax.set_xticks([])
     ax.set_yticks([])
-    
+    sns.distplot(dataset[cont_cols[i]], bins=20, label=cont_cols[i], rug=True, ax=ax)
+    ax.set_xlabel(cont_cols[i], fontsize=10)
 
-
-plt.savefig('src/viz/plots/features_dist.png')
-
+plt.savefig('src/viz/plots/med_measurements_dist.png')
 
 plt.clf()
-plt.hist(y_clas)
-plt.title("Target Distribution for Classification")
+plt.cla()
+plt.style.use('ggplot')
+fig = figure()
+fig, ax = plt.subplots(3, 3)
+fig.suptitle('Gender, BMI & Sympthoms Distribution')
+for i, ax in zip(range(9), ax.flat):
+    ax.label_outer()
+    ax.set_xticks([])
+    #ax.set_yticks([])
+    sns.countplot(dataset[cat_cols[i]], label=cat_cols[i], ax=ax)
+    ax.set_xlabel(cat_cols[i], fontsize=10)
+
+plt.savefig('src/viz/plots/sympthoms_measurements_dist.png')
+
+
+
+
+
+y_clas = dataset.loc[:,[targets_col_clas]].values
+class_names = ['Portal Fibrosis', 'Few Septa', 'Many Septa', 'Cirrhosis']
+t_names = []
+for i in range(len(y_clas)):
+    t_names.append(class_names[y_clas[i][0]-1])
+t_names = np.array(t_names)
+
+y_reg = dataset.loc[:,[targets_col_reg]].values
+y_reg = y_reg/np.max(y_reg)
+y_reg = np.add(y_reg, y_clas)
+y_reg = y_reg-np.min(y_reg)
+y_reg = y_reg/np.max(y_reg)
+
+y_reg = [element[0] for element in y_reg]
+
+plt.clf()
+sns.countplot(t_names)
+#sns.title("Target Distribution for Classification")
 plt.savefig('src/viz/plots/target_classes.png')
 
+
 plt.clf()
-plt.hist(y_reg)
-plt.title("Target Distribution for Regression")
+sns.countplot(y_reg)
+#sns.title("Target Distribution for Regression")
 plt.savefig('src/viz/plots/target_regr.png')
 
-
-
-"""
 plt.clf()
-plt.boxplot(data_to_plot)
-plt.title("Box-and-Whisker for continuous variables")
-plt.show()
-"""
+
+sns.countplot(x=dataset['Baselinehistological staging'],hue=dataset['Gender'])
+plt.legend(bbox_to_anchor=(1,1))
+plt.title("Gender Chart for Histological Staging")
+plt.xlabel("Histological Staging")
+plt.savefig('src/viz/plots/gender_chart_staging.png')
