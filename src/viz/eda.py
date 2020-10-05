@@ -15,7 +15,7 @@ features_col = list(dataset.columns)[:-2]
 new_features_col = ['Age', 'Male','Female','BMI',
                     'No Fever','Fever', 'No Nausea/Vomiting','Nausea/Vomiting',
                     'No Headache','Headache', 'No Diarrhea','Diarrhea',
-                    'No Fatigue+Boneache','Fatigue+Boneache',
+                    'No Fatigue','Fatigue',
                     'No Jaundice','Jaundice', 'No Epigastric pain', 'Epigastric pain',
                     'WBC','RBC','HGB','Plat','AST 1','ALT 1','ALT4','ALT 12','ALT 24','ALT 36','ALT 48',
                     'ALT after 24 w','RNA Base', 'RNA 4','RNA 12','RNA EOT','RNA EF']
@@ -44,7 +44,7 @@ f = plt.figure(figsize=(15, 15))
 plt.matshow(x_df.corr(), fignum=f.number)
 plt.xticks(range(x_df.shape[1]), x_df.columns, fontsize=10, rotation=90)
 plt.yticks(range(x_df.shape[1]), x_df.columns, fontsize=10)
-cb = plt.colorbar()
+cb = plt.colorbar(cmap='plasma')
 cb.ax.tick_params(labelsize=10)
 plt.title('Correlation Matrix', fontsize=16, y=1.22)
 plt.savefig('src/viz/plots/cross_correlation_matrix.png')
@@ -52,8 +52,10 @@ plt.savefig('src/viz/plots/cross_correlation_matrix.png')
 
 
 cat_cols = ['Gender','BMI','Fever','Nausea/Vomting','Headache ',
-                'Diarrhea ','Fatigue & generalized bone ache ','Jaundice ','Epigastric pain ']
+                'Diarrhea ','Fatigue ','Jaundice ','Epigastric_pain ']
 cont_cols = [x for x in features_col if x not in cat_cols]
+
+
 
 plt.clf()
 plt.cla()
@@ -70,6 +72,7 @@ for i, ax in zip(range(18), ax.flat):
 
 plt.savefig('src/viz/plots/med_measurements_dist.png')
 
+custom_palette = sns.set_palette(sns.color_palette("rocket"))
 plt.clf()
 plt.cla()
 plt.style.use('ggplot')
@@ -80,7 +83,7 @@ for i, ax in zip(range(9), ax.flat):
     ax.label_outer()
     ax.set_xticks([])
     #ax.set_yticks([])
-    sns.countplot(dataset[cat_cols[i]], label=cat_cols[i], ax=ax)
+    sns.countplot(dataset[cat_cols[i]], label=cat_cols[i], ax=ax, palette="rocket")
     ax.set_xlabel(cat_cols[i], fontsize=10)
 
 plt.savefig('src/viz/plots/sympthoms_measurements_dist.png')
@@ -105,20 +108,22 @@ y_reg = y_reg/np.max(y_reg)
 y_reg = [element[0] for element in y_reg]
 
 plt.clf()
-sns.countplot(t_names)
-#sns.title("Target Distribution for Classification")
+sns.countplot(t_names, palette="rocket")
+plt.title("Target Distribution for Classification")
 plt.savefig('src/viz/plots/target_classes.png')
 
 
 plt.clf()
-sns.countplot(y_reg)
-#sns.title("Target Distribution for Regression")
+sns.countplot(y_reg, palette="rocket")
+plt.title("Target Distribution for Regression")
+plt.xticks([])
 plt.savefig('src/viz/plots/target_regr.png')
 
 plt.clf()
 
-sns.countplot(x=dataset['Baselinehistological staging'],hue=dataset['Gender'])
+sns.countplot(x=dataset['Baselinehistological_staging'],hue=dataset['Gender'], palette="rocket")
 plt.legend(bbox_to_anchor=(1,1))
 plt.title("Gender Chart for Histological Staging")
 plt.xlabel("Histological Staging")
+plt.xticks([])
 plt.savefig('src/viz/plots/gender_chart_staging.png')
