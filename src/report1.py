@@ -22,11 +22,12 @@ def display_reports():
 - Marco Placenti - s202798
 
 **Contribution table**:
-| Name	| Section |
-|-	|-	|
-| Jesper |  2 & 3	|
-| Ole Batting | 1 & 4 |
-| Marco Placenti | 2, 3 & 4 |
+
+| Name|Section|
+|-|-|
+|Jesper|2 & 3|
+|Ole Batting|1 & 4|
+|Marco Placenti|2, 3 & 4|
 
 ## Links
 - [GitHub Code Repository](https://github.com/flight505/Shared_Intro_ML)
