@@ -1,4 +1,4 @@
-Age,Gender,BMI,Fever,Nausea/Vomting,Headache ,Diarrhea ,Fatigue&generalized_bone_ache ,Jaundice ,Epigastric_pain ,WBC,RBC,HGB,Plat,AST_1,ALT_1,ALT4,ALT_12,ALT_24,ALT_36,ALT_48,ALT_after_24_w,RNA_Base,RNA_4,RNA_12,RNA_EOT,RNA_EF,Baseline_histological_Grading,Baselinehistological_staging
+Age,Gender,BMI,Fever,Nausea/Vomting,Headache ,Diarrhea ,Fatigue ,Jaundice ,Epigastric_pain ,WBC,RBC,HGB,Plat,AST_1,ALT_1,ALT4,ALT_12,ALT_24,ALT_36,ALT_48,ALT_after_24_w,RNA_Base,RNA_4,RNA_12,RNA_EOT,RNA_EF,Baseline_histological_Grading,Baselinehistological_staging
 56,1,35,2,1,1,1,2,2,2,7425,4248807,14,112132,99,84,52,109,81,5,5,5,655330,634536,288194,5,5,13,2
 46,1,29,1,2,2,1,2,2,1,12101,4429425,10,129367,91,123,95,75,113,57,123,44,40620,538635,637056,336804,31085,4,2
 57,1,33,2,2,2,2,1,1,1,4178,4621191,12,151522,113,49,95,107,116,5,5,5,571148,661346,5,735945,558829,4,4
