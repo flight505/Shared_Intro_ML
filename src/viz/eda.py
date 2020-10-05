@@ -99,13 +99,6 @@ for i in range(len(y_clas)):
     t_names.append(class_names[y_clas[i][0]-1])
 t_names = np.array(t_names)
 
-y_reg = dataset.loc[:,[targets_col_reg]].values
-y_reg = y_reg/np.max(y_reg)
-y_reg = np.add(y_reg, y_clas)
-y_reg = y_reg-np.min(y_reg)
-y_reg = y_reg/np.max(y_reg)
-y_reg = [element[0] for element in y_reg]
-
 plt.clf()
 sns.countplot(t_names, palette="rocket", order=['Portal Fibrosis','Few Septa','Many Septa','Cirrhosis'])
 plt.title("Target Distribution for Classification")
@@ -113,7 +106,7 @@ plt.savefig('src/viz/plots/target_classes.png')
 
 
 plt.clf()
-sns.countplot(y_reg, palette="rocket")
+sns.countplot(dataset['Baseline_histological_Grading'], palette="rocket")
 plt.title("Target Distribution for Regression")
 plt.xticks([])
 plt.savefig('src/viz/plots/target_regr.png')
