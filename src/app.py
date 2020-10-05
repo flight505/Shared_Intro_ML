@@ -11,11 +11,13 @@
 import pandas as pd
 import streamlit as st
 import plotly.express as px
+import matplotlib.pyplot as plt
 import SessionState
 from pathlib import Path
 from report1 import display_reports
 import base64
-
+from PCA.dim_red_v2 import PCA_run
+st.set_option('deprecation.showPyplotGlobalUse', False)
 
 ABOUT = "About"
 REPORTS = "Reports"
@@ -73,16 +75,28 @@ def display_about():
 
 def dispaly_data():
      # Header
-    st.title("Data exploration")
+    st.title("PCA and (Data exploration - in the final version)")
     # For univariate distributions
     # histogram to better understand
-    st.header("Histogram")
-    hist_x = st.selectbox("Histogram variable", options=df.columns, index=df.columns.get_loc("Gender"))
-    hist_bins = st.slider(label="Histogram bins", min_value=5, max_value=50, value=25, step=1)
-    hist_cats = df[hist_x].sort_values().unique()
-    hist_fig = px.histogram(df, x=hist_x, nbins=hist_bins, title="Histogram of " + hist_x,
-                            template="plotly_white", category_orders={hist_x: hist_cats})
-    st.write(hist_fig)
+    
+    st.header("PCA")
+    df = load_data()
+    report1_check = st.checkbox("🤞 Run PCA on data")
+    if report1_check:
+        PCA_run(df)
+        #st.plotly_chart(fig, use_container_width=True)
+
+        st.pyplot()
+        
+        
+    
+       
+    #hist_x = st.selectbox("Histogram variable", options=df.columns, index=df.columns.get_loc("Gender"))
+    #hist_bins = st.slider(label="Histogram bins", min_value=5, max_value=50, value=25, step=1)
+    #hist_cats = df[hist_x].sort_values().unique()
+    #hist_fig = px.histogram(df, x=hist_x, nbins=hist_bins, title="Histogram of " + hist_x,
+    #                        template="plotly_white", category_orders={hist_x: hist_cats})
+    #st.write(hist_fig)
 
 
 
