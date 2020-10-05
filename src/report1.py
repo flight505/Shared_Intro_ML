@@ -26,7 +26,7 @@ def display_reports():
 |-	|-	|
 | Jesper |  2 & 3	|
 | Ole Batting | 1 & 4 |
-| Marco Placenti | 3 & 4 |
+| Marco Placenti | 2, 3 & 4 |
 
 ## Links
 - [GitHub Code Repository](https://github.com/flight505/Shared_Intro_ML)
