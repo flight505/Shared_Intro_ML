@@ -169,8 +169,5 @@ Summarize here the most important things you have learned about the data and giv
 
 
 
-<img src="https://i.imgur.com/MGGcqi4.png" width="600" height="500">
-
-
 """, unsafe_allow_html=True)
 
