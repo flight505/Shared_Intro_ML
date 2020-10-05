@@ -72,6 +72,7 @@ def display_config():
 def display_about():
     intro_markdown = read_markdown_file("src/intro.md")
     st.markdown(intro_markdown, unsafe_allow_html=True)
+    st.markdown("---")
 
 def dispaly_data():
      # Header
@@ -87,6 +88,7 @@ def dispaly_data():
         #st.plotly_chart(fig, use_container_width=True)
 
         st.pyplot()
+        st.markdown("---")
         
         
     

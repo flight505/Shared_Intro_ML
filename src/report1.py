@@ -9,8 +9,8 @@ import streamlit as st
 import pandas as pd
 
 def display_reports():
-    report1_check = st.checkbox("📃 Display Report 1 ")
-    if report1_check:
+    #report1_check = st.checkbox("📃 Display Report 1 ")
+    #if report1_check:
         st.markdown(f"""
         # 02450 Introduction to Machine Learning and Data Mining
 ---
@@ -139,7 +139,6 @@ This measure indicates how quickly the disease is spreading - and for hepathisis
 Due to the nature of the dataset, with some attributes having very large ranges and some other being categorizable, some data manipulation was required before applying PCA. Eight of the twenty-seven attributes have been one-hot encoded, bringing the final dimensionality to thirty-five attributes. After doing so, the data has been standardized - so each column has been transformed to have zero mean and standard deviation equal to one.
 The result of the PCA application can be seen in [Figure 1]()
 
-![Figure 1](https://i.imgur.com/f57YRRp.png)
 <img src="https://i.imgur.com/f57YRRp.png" width="600" height="500">
 
 
