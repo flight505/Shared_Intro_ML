@@ -72,7 +72,7 @@ for i, ax in zip(range(18), ax.flat):
 
 plt.savefig('src/viz/plots/med_measurements_dist.png')
 
-custom_palette = sns.set_palette(sns.color_palette("rocket"))
+
 plt.clf()
 plt.cla()
 plt.style.use('ggplot')
@@ -82,7 +82,7 @@ fig.suptitle('Gender, BMI & Sympthoms Distribution')
 for i, ax in zip(range(9), ax.flat):
     ax.label_outer()
     ax.set_xticks([])
-    #ax.set_yticks([])
+    ax.set_yticks([])
     sns.countplot(dataset[cat_cols[i]], label=cat_cols[i], ax=ax, palette="rocket")
     ax.set_xlabel(cat_cols[i], fontsize=10)
 
@@ -104,11 +104,10 @@ y_reg = y_reg/np.max(y_reg)
 y_reg = np.add(y_reg, y_clas)
 y_reg = y_reg-np.min(y_reg)
 y_reg = y_reg/np.max(y_reg)
-
 y_reg = [element[0] for element in y_reg]
 
 plt.clf()
-sns.countplot(t_names, palette="rocket")
+sns.countplot(t_names, palette="rocket", order=['Portal Fibrosis','Few Septa','Many Septa','Cirrhosis'])
 plt.title("Target Distribution for Classification")
 plt.savefig('src/viz/plots/target_classes.png')
 
@@ -119,11 +118,41 @@ plt.title("Target Distribution for Regression")
 plt.xticks([])
 plt.savefig('src/viz/plots/target_regr.png')
 
-plt.clf()
 
-sns.countplot(x=dataset['Baselinehistological_staging'],hue=dataset['Gender'], palette="rocket")
-plt.legend(bbox_to_anchor=(1,1))
-plt.title("Gender Chart for Histological Staging")
-plt.xlabel("Histological Staging")
-plt.xticks([])
-plt.savefig('src/viz/plots/gender_chart_staging.png')
+h_order=[1,2, 3, 4]
+plt.clf()
+plt.cla()
+plt.style.use('ggplot')
+fig = figure()
+fig, ax = plt.subplots(3, 6)
+fig.suptitle('Age & Medical Measurements vs Staging')
+for i, ax in zip(range(18), ax.flat):
+    ax.label_outer()
+    ax.set_xticks([])
+    ax.set_yticks([])
+    sns.scatterplot(dataset[cont_cols[i]], dataset['Baselinehistological_staging'], hue_order=h_order,
+            hue=dataset['Baselinehistological_staging'], legend=None, label=cont_cols[i], palette="vlag", ax=ax,size=1)
+    ax.set_xlabel(cont_cols[i], fontsize=10)
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles[:0], labels[:0])
+
+plt.savefig('src/viz/plots/meas_vs_staging.png')
+
+plt.clf()
+plt.cla()
+plt.style.use('ggplot')
+fig = figure()
+fig, ax = plt.subplots(3, 3)
+fig.suptitle('Gender, BMI & Sympthoms vs Staging')
+for i, ax in zip(range(9), ax.flat):
+    ax.label_outer()
+    ax.set_xticks([])
+    ax.set_yticks([])
+    sns.countplot(x=dataset[cat_cols[i]], hue=dataset["Baselinehistological_staging"],
+                data=dataset, ax=ax,
+                hue_order=h_order,palette='vlag')
+    ax.set_xlabel(cat_cols[i], fontsize=10)
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles[:0], labels[:0])
+
+plt.savefig('src/viz/plots/sympt_vs_staging.png')
