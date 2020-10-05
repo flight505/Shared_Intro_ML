@@ -50,10 +50,10 @@ def PCA_run(dataset):
     U,S,Vh = svd(new_x, full_matrices=True)
 
     rho = (S*S) / (S*S).sum() 
-    threshold = st.slider('threshold', min_value=0.1, max_value=2.0, value=0.9, step=0.1)
+    threshold = st.slider('threshold', min_value=0.1, max_value=4.0, value=0.9, step=0.2)
     
     # Plot variance explained
-    #fig = plt.figure()
+    fig = plt.figure()
     plt.plot(range(1,len(rho)+1),rho,'x-')
     plt.plot(range(1,len(rho)+1),np.cumsum(rho),'o-')
     plt.plot([1,len(rho)],[threshold, threshold],'k--')
@@ -62,7 +62,7 @@ def PCA_run(dataset):
     plt.ylabel('Variance explained');
     plt.legend(['Individual','Cumulative','Threshold'])
     plt.grid()
-    fig = plt.gcf()
+   
 
     x_df = pd.DataFrame(new_x)
     x_df = x_df.drop([1,2,4,5,6,7,8,9,10,11,12,13,14,15,16,17], axis=1)

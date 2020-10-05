@@ -16,7 +16,7 @@ import SessionState
 from pathlib import Path
 from report1 import display_reports
 import base64
-from PCA.dim_red_v2 import *
+from PCA.dim_red_v2 import PCA_run
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
 ABOUT = "About"
