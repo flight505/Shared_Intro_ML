@@ -8,6 +8,7 @@ from matplotlib import pyplot as plt
 from scipy.stats.kde import gaussian_kde
 from matplotlib.pyplot import figure
 import seaborn as sns
+from sklearn import preprocessing
 
 dataset = pd.read_csv("src/data/HCV-Egy-Data.csv", delimiter=',')
 
