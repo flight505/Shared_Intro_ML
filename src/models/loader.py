@@ -13,16 +13,16 @@ class reader():
             raise NameError('Chosen task '+task+' does not exist. Choose between regression and classification.')
 
     def get_x_train(self, task):
-        return pd.read_csv("src/data/splits/"+task+"/x_train.csv")
+        return pd.read_csv("src/data/splits/"+task+"/x_train.csv").values
     
     def get_x_test(self, task):
-        return pd.read_csv("src/data/splits/"+task+"/x_test.csv")
+        return pd.read_csv("src/data/splits/"+task+"/x_test.csv").values
 
     def get_y_train(self, task):
-        return pd.read_csv("src/data/splits/"+task+"/y_train.csv")[self.get_col(task)]
+        return pd.read_csv("src/data/splits/"+task+"/y_train.csv")[self.get_col(task)].values
 
     def get_y_test(self, task):
-        return pd.read_csv("src/data/splits/"+task+"/y_test.csv")[self.get_col(task)]
+        return pd.read_csv("src/data/splits/"+task+"/y_test.csv")[self.get_col(task)].values
 
     def get_all(self, task):
         return (self.get_x_train(task), self.get_y_train(task), self.get_x_test(task), self.get_y_test(task))
