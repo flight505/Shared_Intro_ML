@@ -41,13 +41,6 @@ task = 'classification'
 x_train, y_train, x_unseen, y_unseen = reader().get_all(task)
 
 
-x_train, y_train = make_classification(n_samples=1108, n_features=32, random_state=1)
-#y_train = np.array([random.randint(1,4) for i in range(1108)])
-
-x_unseen, y_unseen = make_classification(n_samples=277, n_features=32, random_state=1)
-#y_unseen = np.array([random.randint(1,4) for i in range(277)])
-
-
 knn_candidate_parameter = [1, 3, 5, 7, 9, 11]
 lr_candidate_parameter = [0.1, 0.2, 0.4, 0.6, 0.8, 1.0]
 dt_candidate_parameter = [0.1, 0.2, 0.4, 0.6, 0.8, 1.0] # fictional
@@ -61,14 +54,14 @@ for outer_fold, (train_index_outer, test_index_outer) in enumerate(outer.split(x
     y_train_outer, y_test_outer = y_train[train_index_outer], y_train[test_index_outer]
 
     inner = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
-    for inner_fold, (train_index_inner, test_index_inner) in enumerate(inner.split(x_train_outer, y_train_outer)):
-        x_train_inner, x_test_inner = x_train_outer[train_index_inner], x_train_outer[test_index_inner]
-        y_train_inner, y_test_inner = y_train_outer[train_index_inner], y_train_outer[test_index_inner]
+    param_scores_knn = {param: [] for param in knn_candidate_parameter}
+    param_scores_lr = {param: [] for param in lr_candidate_parameter}
+    param_scores_dt = {param: [] for param in dt_candidate_parameter}
+    for idx in range(len((knn_candidate_parameter))):
+        for inner_fold, (train_index_inner, test_index_inner) in enumerate(inner.split(x_train_outer, y_train_outer)):
+            x_train_inner, x_test_inner = x_train_outer[train_index_inner], x_train_outer[test_index_inner]
+            y_train_inner, y_test_inner = y_train_outer[train_index_inner], y_train_outer[test_index_inner]
 
-        param_scores_knn = {param: [] for param in knn_candidate_parameter}
-        param_scores_lr = {param: [] for param in lr_candidate_parameter}
-        param_scores_dt = {param: [] for param in dt_candidate_parameter}
-        for idx in range(len((knn_candidate_parameter))):
             knn_model, E_val = KNN(knn_candidate_parameter[idx], x_train_inner, y_train_inner, x_test_inner, y_test_inner)
             param_scores_knn[knn_candidate_parameter[idx]].append(E_val)
 
@@ -79,7 +72,6 @@ for outer_fold, (train_index_outer, test_index_outer) in enumerate(outer.split(x
             param_scores_dt[dt_candidate_parameter[idx]].append(E_val)
 
             bas_score = baseline(y_train_inner, y_test_inner)
-
 
     for k in param_scores_knn.keys():
         param_scores_knn[k] = np.mean(param_scores_knn[k])
@@ -97,6 +89,8 @@ for outer_fold, (train_index_outer, test_index_outer) in enumerate(outer.split(x
             
     clf, E_test = KNN(opt_param_knn, x_train_outer, y_train_outer, x_test_outer, y_test_outer)
     outer_scores_knn.append(E_test)
+
+    print(outer_fold, opt_param_knn, E_test)
 
     clf, E_test = LogReg(opt_param_lr, x_train_outer, y_train_outer, x_test_outer, y_test_outer)
     outer_scores_lr.append(E_test)

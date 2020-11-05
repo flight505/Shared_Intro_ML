@@ -1,21 +1,17 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
-
-standardize = True
+from sklearn.preprocessing import StandardScaler
 
 dataset = pd.read_csv("src/data/HCV-Egy-Data.csv", delimiter=',')
 dataset.drop(labels=['RNA_12','RNA_EOT','RNA_EF'], axis=1, inplace=True)
 
 features_col = list(dataset.columns)[:-2]
-new_features_col = ['Age', 'Male','Female','BMI',
-                    'No Fever','Fever', 'No Nausea/Vomiting','Nausea/Vomiting',
-                    'No Headache','Headache', 'No Diarrhea','Diarrhea',
-                    'No Fatigue','Fatigue',
-                    'No Jaundice','Jaundice', 'No Epigastric pain', 'Epigastric pain',
+new_features_col = ['Age', 'Gender','BMI','Fever','Nausea/Vomting',
+                   'Headache ','Diarrhea ','Fatigue ','Jaundice ','Epigastric_pain ',
                     'WBC','RBC','HGB','Plat','AST 1','ALT 1','ALT4','ALT 12','ALT 24','ALT 36','ALT 48',
                     'ALT after 24 w','RNA Base', 'RNA 4']
+
 targets_col_reg = list(dataset.columns)[-2]
 targets_col_clas = list(dataset.columns)[-1]
 
@@ -33,51 +29,47 @@ dataset['ALT_after_24_w'] = dataset['ALT_after_24_w_temp']
 
 dataset.drop(labels=['ALT_36_temp','ALT_48_temp','ALT_after_24_w_temp'], axis=1, inplace=True)
 
-x = dataset.loc[:, features_col].values
-new_x = []
-cols = [1,3,4,5,6,7,8,9] # binary columns
-for column in range(x.shape[1]):
-    col_vector = x[:,column]
-    if column not in cols:
-        if standardize:
-            col_mean = np.mean(col_vector)
-            col_std = np.std(col_vector)
-            new_x.append((col_vector-col_mean)/col_std)
-        else:
-            new_x.append(col_vector)
-    else:
-        integer_encoded = LabelEncoder().fit_transform(col_vector)
-        integer_encoded = integer_encoded.reshape(len(integer_encoded), 1)
-        onehot_encoded = OneHotEncoder(sparse=False).fit_transform(integer_encoded)
-        for one_hot_enc_col in range(onehot_encoded.shape[1]):
-            new_x.append(onehot_encoded[:,one_hot_enc_col])
-        
-new_x = np.array(new_x).T
-x_df = pd.DataFrame(new_x)
-x_df.columns = new_features_col
-x_df['Baselinehistological_staging'] = dataset['Baselinehistological_staging']
-x_df['Baseline_histological_Grading'] = dataset['Baseline_histological_Grading']
+y_class = dataset['Baselinehistological_staging']
+dataset.drop(labels=['Baselinehistological_staging', 'Baseline_histological_Grading'], axis=1, inplace=True)
 
-y_class = x_df['Baselinehistological_staging']
-y_regr = x_df['Baseline_histological_Grading']
 
-x_df.drop(labels=['Baselinehistological_staging', 'Baseline_histological_Grading'], axis=1, inplace=True)
-
-X_train, X_test, y_train, y_test = train_test_split(x_df, y_class,
+x_train, x_test, y_train, y_test = train_test_split(dataset, y_class,
                                                     stratify=y_class, 
                                                     test_size=0.2)
 
-X_train.to_csv("src/data/splits/classification/x_train.csv", index=False)
-y_train.to_csv("src/data/splits/classification/y_train.csv", index=False)
-X_test.to_csv("src/data/splits/classification/x_test.csv", index=False)
-y_test.to_csv("src/data/splits/classification/y_test.csv", index=False)
 
-X_train, X_test, y_train, y_test = train_test_split(x_df, y_regr,
-                                                    stratify=y_regr, 
-                                                    test_size=0.2)
+x_train = x_train.loc[:, features_col]
+x_test = x_test.loc[:, features_col]
+x_train_to_std, x_train_bin = pd.DataFrame(), pd.DataFrame()
+x_test_to_std, x_test_bin = pd.DataFrame(), pd.DataFrame()
+cols = ['Gender','Fever','Nausea/Vomting','Headache ','Diarrhea ','Fatigue ','Jaundice ','Epigastric_pain ']
+for column in x_train:
+    if column not in cols:
+        x_train_to_std[column] = x_train[column]
+        x_test_to_std[column] = x_test[column]
+    else:
+        x_train_bin[column] = x_train[column]-1
+        x_test_bin[column] = x_test[column]-1
+        
+scaler = StandardScaler()
+scaler.fit(x_train_to_std)
+x_train_std = scaler.transform(x_train_to_std)
+x_test_std = scaler.transform(x_test_to_std)
 
-X_train.to_csv("src/data/splits/regression/x_train.csv", index=False)
-y_train.to_csv("src/data/splits/regression/y_train.csv", index=False)
-X_test.to_csv("src/data/splits/regression/x_test.csv", index=False)
-y_test.to_csv("src/data/splits/regression/y_test.csv", index=False)
+x_train_bin = x_train_bin.values
+x_test_bin = x_test_bin.values
+
+x_train = np.empty((x_train_std.shape[0], x_train_std.shape[1]+x_train_bin.shape[1]))
+x_test = np.empty((x_test_std.shape[0], x_test_std.shape[1]+x_test_bin.shape[1]))
+
+for i in range(x_train_std.shape[0]):
+    x_train[i] = np.concatenate((x_train_std[i], x_train_bin[i]), axis=None)
+
+for i in range(x_test_std.shape[0]):
+    x_test[i] = np.concatenate((x_test_std[i], x_test_bin[i]), axis=None)
+
+np.savetxt("src/data/splits/classification/x_train.csv", x_train, delimiter=",")
+np.savetxt("src/data/splits/classification/x_test.csv", x_test, delimiter=",")
+np.savetxt("src/data/splits/classification/y_train.csv", y_train, delimiter=",")
+np.savetxt("src/data/splits/classification/y_test.csv", y_test, delimiter=",")
 
