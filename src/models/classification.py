@@ -45,18 +45,18 @@ knn_candidate_parameter = [1, 3, 5, 7, 9, 11]
 lr_candidate_parameter = [0.1, 0.2, 0.4, 0.6, 0.8, 1.0]
 dt_candidate_parameter = [0.1, 0.2, 0.4, 0.6, 0.8, 1.0] # fictional
 
-
 outer_scores_knn, outer_scores_lr, outer_scores_dt = [], [], []
+outer_fold_hp_knn, outer_fold_hp_lr, outer_fold_hp_dt = [], [], []
 outer = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
 for outer_fold, (train_index_outer, test_index_outer) in enumerate(outer.split(x_train, y_train)):
-    #print("Outer fold: "+str(outer_fold))
     x_train_outer, x_test_outer = x_train[train_index_outer], x_train[test_index_outer]
     y_train_outer, y_test_outer = y_train[train_index_outer], y_train[test_index_outer]
 
-    inner = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
     param_scores_knn = {param: [] for param in knn_candidate_parameter}
     param_scores_lr = {param: [] for param in lr_candidate_parameter}
     param_scores_dt = {param: [] for param in dt_candidate_parameter}
+
+    inner = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
     for idx in range(len((knn_candidate_parameter))):
         for inner_fold, (train_index_inner, test_index_inner) in enumerate(inner.split(x_train_outer, y_train_outer)):
             x_train_inner, x_test_inner = x_train_outer[train_index_inner], x_train_outer[test_index_inner]
@@ -73,6 +73,7 @@ for outer_fold, (train_index_outer, test_index_outer) in enumerate(outer.split(x
 
             bas_score = baseline(y_train_inner, y_test_inner)
 
+
     for k in param_scores_knn.keys():
         param_scores_knn[k] = np.mean(param_scores_knn[k])
 
@@ -82,70 +83,24 @@ for outer_fold, (train_index_outer, test_index_outer) in enumerate(outer.split(x
     for k in param_scores_dt.keys():
         param_scores_dt[k] = np.mean(param_scores_dt[k])
     
-
-    opt_param_knn = max(param_scores_knn.items(), key=operator.itemgetter(1))[0]
-    opt_param_lr = max(param_scores_lr.items(), key=operator.itemgetter(1))[0]
-    opt_param_dt = max(param_scores_dt.items(), key=operator.itemgetter(1))[0]
+    opt_knn = max(param_scores_knn.items(), key=operator.itemgetter(1))[0]
+    opt_lr = max(param_scores_lr.items(), key=operator.itemgetter(1))[0]
+    opt_dt = max(param_scores_dt.items(), key=operator.itemgetter(1))[0]
+    outer_fold_hp_knn.append(opt_knn)
+    outer_fold_hp_lr.append(opt_lr)
+    outer_fold_hp_dt.append(opt_dt)
             
-    clf, E_test = KNN(opt_param_knn, x_train_outer, y_train_outer, x_test_outer, y_test_outer)
-    outer_scores_knn.append(E_test)
+    clf, E_test = KNN(opt_knn, x_train_outer, y_train_outer, x_test_outer, y_test_outer)
+    outer_scores_knn.append(round(E_test,3))
 
-    print(outer_fold, opt_param_knn, E_test)
-
-    clf, E_test = LogReg(opt_param_lr, x_train_outer, y_train_outer, x_test_outer, y_test_outer)
-    outer_scores_lr.append(E_test)
+    clf, E_test = LogReg(opt_lr, x_train_outer, y_train_outer, x_test_outer, y_test_outer)
+    outer_scores_lr.append(round(E_test,3))
 
     clf, E_test = DecisionTrees(x_train_outer, y_train_outer, x_test_outer, y_test_outer)
-    outer_scores_dt.append(E_test)
+    outer_scores_dt.append(round(E_test,3))
 
-print("KNN Score: %.3f" % (np.mean(outer_scores_knn)))
-print("LogReg Score: %.3f" % (np.mean(outer_scores_lr)))
-print("DecisionTree Score: %.3f" % (np.mean(outer_scores_dt)))
+# print outer_scores_* and outer_fold_hp_* for table in project description
 
-models = ['KNN', 'LogReg','DecisionTree']
-gen_scores = [np.mean(outer_scores_knn), np.mean(outer_scores_lr), np.mean(outer_scores_dt)]
-
-best_model = models[np.argmax(gen_scores)]
-
-if best_model == 'KNN':
-    cand_params = knn_candidate_parameter
-elif best_model == 'LogReg':
-    cand_params = lr_candidate_parameter
-elif best_model == 'DecisionTree':
-    cand_params = dt_candidate_parameter
-
-for param in cand_params:
-    scores = []
-
-    acc_E_val = 0
-    inner = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
-    for train_index, test_index in inner.split(x_train, y_train):
-        x_train_cv, x_test_cv = x_train[train_index], x_train[test_index]
-        y_train_cv, y_test_cv = y_train[train_index], y_train[test_index]
-
-        # fit extremely randomized trees regressor to training data
-        if best_model == 'KNN':
-            clf, E_val = KNN(param, x_train_cv, y_train_cv, x_test_cv, y_test_cv)
-            acc_E_val += E_val
-        elif best_model == 'LogReg':
-            clf, E_val =LogReg(param, x_train_cv, y_train_cv, x_test_cv, y_test_cv)
-            acc_E_val += E_val
-        elif best_model == 'DecisionTree':
-            clf, E_val = DecisionTrees(param, x_train_cv, y_train_cv, x_test_cv, y_test_cv)
-            acc_E_val += E_val
-
-    # calculate mean score for folds
-    scores.append(np.mean(acc_E_val))
-
-# get maximum score index
-index, value = max(enumerate(scores), key=operator.itemgetter(1))
-if best_model == 'KNN':
-    clf, E_val = KNN(param, x_train, y_train, x_unseen, y_unseen)
-elif best_model == 'LogReg':
-    clf, E_val = LogReg(param, x_train, y_train, x_unseen, y_unseen)
-elif best_model == 'DecisionTree':
-    clf, E_val = DecisionTrees(param, x_train, y_train, x_unseen, y_unseen)
-
-print(f"{best_model} Score on Test: %.3f" % (E_val))
-
-
+print(outer_scores_knn)
+print(outer_fold_hp_knn)
+print(max(outer_scores_knn), outer_fold_hp_knn[np.argmax(outer_scores_knn)])
