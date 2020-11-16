@@ -3,8 +3,11 @@ import numpy as np
 import random
 from collections import Counter
 import pandas as pd
+from imblearn.over_sampling import SMOTENC
+import scipy.stats as st
+import scipy.stats
 
-from sklearn.model_selection import StratifiedKFold, train_test_split
+from sklearn.model_selection import KFold, StratifiedKFold, train_test_split
 from sklearn.metrics import accuracy_score
 
 from sklearn.ensemble import BaggingClassifier
@@ -58,6 +61,13 @@ def LogReg(lamb, X_train, y_train, X_test, y_test):
     y_pred = model.predict(X_test)
     return y_pred, 1-accuracy_score(y_test, y_pred)
 
+# same as above but returns also the coefficient for each feature 
+def LogReg_coef(lamb, X_train, y_train, X_test, y_test):
+    model = LogisticRegression(solver = 'lbfgs', C=1/lamb, max_iter=400)
+    model = model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    return y_pred, 1-accuracy_score(y_test, y_pred), model.coef_, model.intercept_
+
 # Baseline prediction, takes targets of train and target of test set. Finds most common class in train
 # and creates a prediction array of same length of test set.
 # returns predictions and error
@@ -104,26 +114,42 @@ def ANN(h, X_train, y_train, X_test, y_test):
 # follows algorithm explained in the book to create contingency table
 # then performs test using statsmodel library
 # returns pvalue and "response"
-def perform_stat_test(y_true, model1, model2):
-    assert len(model1) == len(model2) == len(y_true)
+def perform_stat_test(y_true, model1, model2, alpha=0.05):
+    # perform McNemars test
+    nn = np.zeros((2,2))
+    c1 = model1 - y_true == 0
+    c2 = model2 - y_true == 0
 
-    c1 = [1 if model1[i]==y_true[i] else 0 for i in range(len(y_true))]
-    c2 = [1 if model2[i]==y_true[i] else 0 for i in range(len(y_true))]
+    nn[0,0] = sum(c1 & c2)
+    nn[0,1] = sum(c1 & ~c2)
+    nn[1,0] = sum(~c1 & c2)
+    nn[1,1] = sum(~c1 & ~c2)
 
-    n11 = np.sum([1 if c1[i]==c2[i]==1 else 0 for i in range(len(c1))])
-    n12 = np.sum([1 if c1[i]==1-c2[i]==1 else 0 for i in range(len(c1))])
-    n21 = np.sum([1 if 1-c1[i]==c2[i]==1 else 0 for i in range(len(c1))])
-    n22 = np.sum([1 if 1-c1[i]==1-c2[i]==1 else 0 for i in range(len(c1))])
-    cont_table = [[n11, n12],[n21, n22]]
+    n = sum(nn.flat);
+    n12 = nn[0,1]
+    n21 = nn[1,0]
 
-    result = mcnemar(cont_table, exact=True)
-    pvalue = result.pvalue
-    if result.pvalue > 0.05:
-        resp = 'The difference in proportion of errors is not statistically significant.'
-    else:
-        resp = 'The difference in proportion of errors is statistically significant.'
+    thetahat = (n12-n21)/n
+    Etheta = thetahat
 
-    return (pvalue, resp)
+    Q = n**2 * (n+1) * (Etheta+1) * (1-Etheta) / ( (n*(n12+n21) - (n12-n21)**2) )
+
+    p = (Etheta + 1)*0.5 * (Q-1)
+    q = (1-Etheta)*0.5 * (Q-1)
+
+    CI = tuple(lm * 2 - 1 for lm in scipy.stats.beta.interval(1-alpha, a=p, b=q) )
+
+    p = 2*scipy.stats.binom.cdf(min([n12,n21]), n=n12+n21, p=0.5)
+    print("Result of McNemars test using alpha=", alpha)
+    print("Comparison matrix n")
+    print(nn)
+    if n12+n21 <= 10:
+        print("Warning, n12+n21 is low: n12+n21=",(n12+n21))
+
+    print("Approximate 1-alpha confidence interval of theta: [thetaL,thetaU] = ", CI)
+    print("p-value for two-sided test A and B have same accuracy (exact binomial test): p=", p)
+
+    return thetahat, CI, p
         
 
 
@@ -148,10 +174,34 @@ if __name__ == "__main__":
         task = 'classification'
         x_train, y_train, x_unseen, y_unseen = reader().get_all(task)
 
+    x_train = np.append(x_train, x_unseen, 0)
+    y_train = np.append(y_train, y_unseen, 0)
+    """
+    # performing data balancing using SMOTE
+    aug_x, aug_y = [],[]
+
+    oversample = SMOTENC(sampling_strategy='all', categorical_features=[16,17,18,19,20,21,22,23])
+    outer = KFold(n_splits=10, shuffle=True, random_state=42)
+    for outer_fold, (train_index_outer, test_index_outer) in enumerate(outer.split(x_train, y_train)):
+        print(f"Performing {outer_fold+1}/10 SMOTE...")
+        x_train_outer, x_test_outer = x_train[train_index_outer], x_train[test_index_outer]
+        y_train_outer, y_test_outer = y_train[train_index_outer], y_train[test_index_outer]
+
+        x_train_outer, y_train_outer = oversample.fit_resample(x_train_outer, y_train_outer)
+        x_comb = np.append(x_train_outer,x_test_outer, 0)
+        y_comb = np.append(y_train_outer,y_test_outer, 0)
+        aug_x.extend(x_comb)
+        aug_y.extend(y_comb)
+
+    x_train = np.array(aug_x)
+    y_train = np.array(aug_y)
+    """
+
     # we defined candidate hyperparameters for each model - they need to have same dimensionality
-    knn_candidate_parameter = [1, 3, 5, 7, 9, 11]
-    lr_candidate_parameter = [0.1, 0.2, 0.4, 0.6, 0.8, 1.0]
-    ann_candidate_parameter = [1, 8, 16, 32, 64, 128]
+    knn_candidate_parameter = [1, 3, 5, 7, 9, 11, 13, 15]
+    lr_candidate_parameter = [0.1, 0.2, 0.4, 0.6, 0.8, 1.0, 5.0, 25.0]
+    ann_candidate_parameter = [1, 8, 16, 32, 64, 128, 256, 512]
+    #ann_candidate_parameter = [512]*8
 
     # data structure initialization
     outer_scores_knn, outer_scores_lr, outer_scores_ann, outer_scores_bas = [], [], [], []
@@ -235,17 +285,23 @@ if __name__ == "__main__":
     table['LogReg Error'] = outer_scores_lr
     table['KNN hp'] = outer_fold_hp_knn
     table['KNN Error'] = outer_scores_knn
+    table['ANN hp'] = outer_fold_hp_ann
+    table['ANN Error'] = outer_scores_ann
     table['Baseline Error'] = outer_scores_bas
     
     print(table)
 
     # we perform the mcnamer test to see if one model is statistically better than another
-    knn_bas_test = perform_stat_test(y_true_all, knn_preds_all, bas_preds_all)
-    knn_lr_test = perform_stat_test(y_true_all, knn_preds_all, logreg_preds_all)
-    lr_bas_test = perform_stat_test(y_true_all, logreg_preds_all, bas_preds_all)
+    knn_bas_test = perform_stat_test(np.array(y_true_all), np.array(knn_preds_all), np.array(bas_preds_all))
+    knn_lr_test = perform_stat_test(np.array(y_true_all), np.array(knn_preds_all), np.array(logreg_preds_all))
+    lr_bas_test = perform_stat_test(np.array(y_true_all), np.array(logreg_preds_all), np.array(bas_preds_all))
+    ann_bas_test = perform_stat_test(np.array(y_true_all), np.array(ann_preds_all), np.array(bas_preds_all))
 
     print(knn_bas_test)
     print(knn_lr_test)
     print(lr_bas_test)
+    print(ann_bas_test)
 
     
+    preds, error, coefs, intercepts = LogReg_coef(25, x_train, y_train, x_unseen, y_unseen)
+    print(error, coefs, intercepts)
